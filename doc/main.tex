@@ -1,0 +1,57 @@
+\documentclass[a4]{article}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{lstocaml}
+\usepackage{lstcoq}
+
+\newenvironment{twolistings}%
+{\noindent\begin{tabular*}{\linewidth}{@{}c@{\extracolsep{\fill}}c@{}}}%
+{\end{tabular*}}
+
+\begin{document}
+\begin{abstract}
+  We try to build a tutorial on how to write an OCaml tactic for Coq,
+  with a focus on reification tactics.
+\end{abstract}
+
+\section*{Introduction}
+The long term goal of this tutorial is to reify the equation on the
+left, into a reified version on the right, that exposes the syntax
+tree of the expressions.
+
+\begin{twolistings}
+  \begin{coq}
+
+
+a,b: nat
+========= 
+a + S b + 2 = a + b + 3
+  \end{coq}
+&
+  \begin{coq}
+a,b: nat
+left := (a_plus (a_plus (a_const a) (a_succ (a_const b))) (a_const 2))
+right := (a_plus (a_plus (a_const a) (a_const b)) (a_const 3))
+========= 
+left  = right
+  \end{coq}
+
+\end{twolistings}
+\section{OCaml representation of a Coq term}
+The first step to get 
+\begin{coq}
+  
+\end{coq}
+\section{A first tactic}
+\section{Reification in Coq}
+
+\appendix
+\section{The makefile}
+\section{A walkthrough of Coq sources}
+
+\end{document}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 
