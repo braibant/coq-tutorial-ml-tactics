@@ -1,0 +1,4 @@
+-custom "$(CAMLOPTLINK) $(ZDEBUG) $(ZFLAGS) -shared -linkall -o plugin.cmxs $(CMXFILES)" "$(CMXFILES)" plugin.cmxs 
+-custom "$(CAMLOPTLINK) -g -a -o plugin.cmxa $(CMXFILES)" "$(CMXFILES)" plugin.cmxa
+-custom "$(CAMLLINK) -g -a -o plugin.cma $(CMOFILES)" "$(CMOFILES)" plugin.cma
+-custom "$(CAMLBIN)ocamldep -slash $(OCAMLLIBS) $^ > .depend" "$(MLIFILES)" .depend
