@@ -1,4 +1,4 @@
 lib_coq.ml
 lib_coq.mli
-plugin.ml
+plugin.ml4
 Theory.v
