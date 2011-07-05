@@ -1,4 +1,0 @@
-lib_coq.ml
-lib_coq.mli
-plugin.ml
-Theory.v

@@ -64,6 +64,10 @@ End example.
    We use the following vernacular command to make Coq load the plugin
    [plugin] when one load the Coq file [Theory]. In the plugin
    [plugin], we declare some new tactics that will be available in
-   proof-mode. *)
+   proof-mode.
 
+   In the current trunk (07/05/2011 rev 14260), one has to declare all
+   ML modules that need to be linked dynamically. *)
+
+Declare ML Module "lib_coq".
 Declare ML Module "plugin".

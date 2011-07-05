@@ -8,5 +8,8 @@
 *.cmx
 *.cmo
 *.cmxs
+*.mli.d
+*.ml4.d
 *.ml.d
 *.o
+Makefile-localvars.gen

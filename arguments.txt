@@ -1,0 +1,7 @@
+-I ./src
+-R ./test-suite ML_tutorial.Tests
+src/lib_coq.ml
+src/lib_coq.mli
+src/plugin.ml4
+src/Theory.v
+test-suite/example.v
