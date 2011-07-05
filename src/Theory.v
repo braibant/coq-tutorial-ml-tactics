@@ -66,4 +66,5 @@ End example.
    [plugin], we declare some new tactics that will be available in
    proof-mode. *)
 
+Declare ML Module "lib_coq".
 Declare ML Module "plugin".
