@@ -1,0 +1,12 @@
+*~
+\#*\#
+*.glob
+*.vo
+*.v.d
+*.cmi
+*.cma
+*.cmx
+*.cmo
+*.cmxs
+*.ml.d
+*.o
