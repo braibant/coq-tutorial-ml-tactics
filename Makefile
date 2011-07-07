@@ -48,6 +48,8 @@ COQSRCLIBS?=-I $(COQLIB)kernel -I $(COQLIB)lib \
   -I $(COQLIB)plugins/firstorder \
   -I $(COQLIB)plugins/fourier \
   -I $(COQLIB)plugins/funind \
+  -I $(COQLIB)plugins/groebner \
+  -I $(COQLIB)plugins/interface \
   -I $(COQLIB)plugins/micromega \
   -I $(COQLIB)plugins/nsatz \
   -I $(COQLIB)plugins/omega \
@@ -60,8 +62,10 @@ COQSRCLIBS?=-I $(COQLIB)kernel -I $(COQLIB)lib \
   -I $(COQLIB)plugins/subtac/test \
   -I $(COQLIB)plugins/syntax \
   -I $(COQLIB)plugins/xml
-COQLIBS?=-I ./src -R ./test-suite ML_tutorial.Tests
-COQDOCLIBS?=-R ./test-suite ML_tutorial.Tests
+COQLIBS?= -R ./test-suite ML_tutorial.Tests\
+  -R ./src ML_tutorial
+COQDOCLIBS?=-R ./test-suite ML_tutorial.Tests\
+  -R ./src ML_tutorial
 
 ##########################
 #                        #
@@ -96,7 +100,8 @@ VFILES:=src/Theory.v\
   test-suite/example.v
 VOFILES:=$(VFILES:.v=.vo)
 VOFILES1:=$(patsubst ./test-suite/%,%,$(filter ./test-suite/%,$(VOFILES)))
-VOFILES0:=$(filter-out ./test-suite/%,$(VOFILES))
+VOFILES2:=$(patsubst ./src/%,%,$(filter ./src/%,$(VOFILES)))
+VOFILES0:=$(filter-out ./test-suite/% ./src/%,$(VOFILES))
 GLOBFILES:=$(VFILES:.v=.glob)
 VIFILES:=$(VFILES:.v=.vi)
 GFILES:=$(VFILES:.v=.g)
@@ -105,18 +110,19 @@ GHTMLFILES:=$(VFILES:.v=.g.html)
 ML4FILES:=src/plugin.ml4
 MLFILES:=src/lib_coq.ml
 CMOFILES:=$(ML4FILES:.ml4=.cmo) $(MLFILES:.ml=.cmo)
-CMOFILES0:=$(filter-out ./test-suite/%,$(CMOFILES))
+CMOFILES2:=$(patsubst ./src/%,%,$(filter ./src/%,$(CMOFILES)))
+CMOFILES0:=$(filter-out ./test-suite/% ./src/%,$(CMOFILES))
 CMIFILES:=$(sort $(CMOFILES:.cmo=.cmi) $(MLIFILES:.mli=.cmi))
-CMIFILES0:=$(filter-out ./test-suite/%,$(CMIFILES))
+CMIFILES2:=$(patsubst ./src/%,%,$(filter ./src/%,$(CMIFILES)))
+CMIFILES0:=$(filter-out ./test-suite/% ./src/%,$(CMIFILES))
 CMXFILES:=$(CMOFILES:.cmo=.cmx)
 CMXSFILES:=$(CMXFILES:.cmx=.cmxs)
-CMXSFILES0:=$(filter-out ./test-suite/%,$(CMXSFILES))
+CMXSFILES2:=$(patsubst ./src/%,%,$(filter ./src/%,$(CMXSFILES)))
+CMXSFILES0:=$(filter-out ./test-suite/% ./src/%,$(CMXSFILES))
 OFILES:=$(CMXFILES:.cmx=.o)
 MLIFILES:=src/lib_coq.mli
 
-all: $(VOFILES) $(CMOFILES) $(if ifeq '$(HASNATDYNLINK)' 'true',$(CMXSFILES)) src/the_plugin.cmxs\
-  src/the_plugin.cmxa\
-  src/the_plugin.cma
+all: $(VOFILES) $(CMOFILES) $(if ifeq '$(HASNATDYNLINK)' 'true',$(CMXSFILES)) 
 
 mlihtml: $(MLIFILES:.mli=.cmi)
 	 mkdir $@ || rm -rf $@/*
@@ -149,21 +155,6 @@ all.pdf: $(VFILES)
 all-gal.pdf: $(VFILES)
 	$(COQDOC) -toc -pdf -g $(COQDOCLIBS) -o $@ `$(COQDEP) -sort -suffix .v $(VFILES)`
 
-
-###################
-#                 #
-# Custom targets. #
-#                 #
-###################
-
-src/the_plugin.cmxs: $(CMXFILES)
-	$(CAMLOPTLINK) $(ZDEBUG) $(ZFLAGS) -shared -linkall -o $@ $^
-
-src/the_plugin.cmxa: $(CMXFILES)
-	$(CAMLOPTLINK) -g -a -o $@ $^
-
-src/the_plugin.cma: $(CMOFILES)
-	$(CAMLLINK) -g -a -o $@ $^
 
 ####################
 #                  #
@@ -234,6 +225,10 @@ opt:
 	$(MAKE) all "OPT:=-opt"
 
 install-natdynlink:
+	cd ./src; for i in $(CMXSFILES2); do \
+	 install -d `dirname $(DSTROOT)$(COQLIB)user-contrib/ML_tutorial/$$i`; \
+	 install $$i $(DSTROOT)$(COQLIB)user-contrib/ML_tutorial/$$i; \
+	done
 	for i in $(CMXSFILES0); do \
 	 install -d `dirname $(DSTROOT)$(COQLIB)user-contrib/$(INSTALLDEFAULTROOT)/$$i`; \
 	 install $$i $(DSTROOT)$(COQLIB)user-contrib/$(INSTALLDEFAULTROOT)/$$i; \
@@ -244,13 +239,25 @@ install:$(if ifeq '$(HASNATDYNLINK)' 'true',install-natdynlink)
 	 install -d `dirname $(DSTROOT)$(COQLIB)user-contrib/ML_tutorial/Tests/$$i`; \
 	 install $$i $(DSTROOT)$(COQLIB)user-contrib/ML_tutorial/Tests/$$i; \
 	done
+	cd ./src; for i in $(VOFILES2); do \
+	 install -d `dirname $(DSTROOT)$(COQLIB)user-contrib/ML_tutorial/$$i`; \
+	 install $$i $(DSTROOT)$(COQLIB)user-contrib/ML_tutorial/$$i; \
+	done
 	for i in $(VOFILES0); do \
 	 install -d `dirname $(DSTROOT)$(COQLIB)user-contrib/$(INSTALLDEFAULTROOT)/$$i`; \
 	 install $$i $(DSTROOT)$(COQLIB)user-contrib/$(INSTALLDEFAULTROOT)/$$i; \
 	done
+	cd ./src; for i in $(CMOFILES2); do \
+	 install -d `dirname $(DSTROOT)$(COQLIB)user-contrib/ML_tutorial/$$i`; \
+	 install $$i $(DSTROOT)$(COQLIB)user-contrib/ML_tutorial/$$i; \
+	done
 	for i in $(CMOFILES0); do \
 	 install -d `dirname $(DSTROOT)$(COQLIB)user-contrib/$(INSTALLDEFAULTROOT)/$$i`; \
 	 install $$i $(DSTROOT)$(COQLIB)user-contrib/$(INSTALLDEFAULTROOT)/$$i; \
+	done
+	cd ./src; for i in $(CMIFILES2); do \
+	 install -d `dirname $(DSTROOT)$(COQLIB)user-contrib/ML_tutorial/$$i`; \
+	 install $$i $(DSTROOT)$(COQLIB)user-contrib/ML_tutorial/$$i; \
 	done
 	for i in $(CMIFILES0); do \
 	 install -d `dirname $(DSTROOT)$(COQLIB)user-contrib/$(INSTALLDEFAULTROOT)/$$i`; \
@@ -258,13 +265,13 @@ install:$(if ifeq '$(HASNATDYNLINK)' 'true',install-natdynlink)
 	done
 
 install-doc:
-	install -d $(DSTROOT)$(DOCDIR)user-contrib/ML_tutorial/Tests/html
+	install -d $(DSTROOT)$(DOCDIR)user-contrib/$(INSTALLDEFAULTROOT)/html
 	for i in html/*; do \
-	 install $$i $(DSTROOT)$(DOCDIR)user-contrib/ML_tutorial/Tests/$$i;\
+	 install $$i $(DSTROOT)$(DOCDIR)user-contrib/$(INSTALLDEFAULTROOT)/$$i;\
 	done
-	install -d $(DSTROOT)$(DOCDIR)user-contrib/ML_tutorial/Tests/mlihtml
+	install -d $(DSTROOT)$(DOCDIR)user-contrib/$(INSTALLDEFAULTROOT)/mlihtml
 	for i in mlihtml/*; do \
-	 install $$i $(DSTROOT)$(DOCDIR)user-contrib/ML_tutorial/Tests/$$i;\
+	 install $$i $(DSTROOT)$(DOCDIR)user-contrib/$(INSTALLDEFAULTROOT)/$$i;\
 	done
 
 clean:
@@ -273,9 +280,6 @@ clean:
 	rm -f $(VOFILES) $(VIFILES) $(GFILES) $(VFILES:.v=.v.d)
 	rm -f all.ps all-gal.ps all.pdf all-gal.pdf all.glob $(VFILES:.v=.glob) $(VFILES:.v=.tex) $(VFILES:.v=.g.tex) all-mli.tex
 	- rm -rf html mlihtml
-	- rm -rf src/the_plugin.cmxs
-	- rm -rf src/the_plugin.cmxa
-	- rm -rf src/the_plugin.cma
 
 archclean:
 	rm -f *.cmx *.o

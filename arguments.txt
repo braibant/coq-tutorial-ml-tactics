@@ -1,5 +1,6 @@
 -I ./src
 -R ./test-suite ML_tutorial.Tests
+-R ./src ML_tutorial
 src/lib_coq.ml
 src/lib_coq.mli
 src/plugin.ml4

@@ -55,14 +55,16 @@ end
 module Reif = struct
   (** We initialize a new bunch of constants that correspond to the
       constructors of our inductive. *)
-  let plus = lazy (Lib_coq.init_constant ["Theory"] "a_plus")
-  let var = lazy (Lib_coq.init_constant ["Theory"] "a_var")
-  let const = lazy (Lib_coq.init_constant ["Theory"] "a_const")
-  let succ = lazy (Lib_coq.init_constant ["Theory"] "a_succ")
+  let path = ["ML_tutorial";"Theory"] 
+
+  let plus = lazy (Lib_coq.init_constant  path "a_plus")
+  let var = lazy (Lib_coq.init_constant  path "a_var")
+  let const = lazy (Lib_coq.init_constant path  "a_const")
+  let succ = lazy (Lib_coq.init_constant path "a_succ")
 
   (** [eval] is the Coq function that maps a reified Coq arithmetic
       expression back to a nat *)
-  let eval = lazy(Lib_coq.init_constant ["Theory"] "eval")
+  let eval = lazy(Lib_coq.init_constant path "eval")
 
   let rec to_constr (t : Arith.t) : Term.constr =
     match t with
