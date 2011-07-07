@@ -1,41 +1,49 @@
 (* The contrib name is used to locate errors when loading constrs *)
 let contrib_name = "ml_tutorial"
 
-(* Getting constrs (primitive Coq terms) from existing Coq
-   libraries. *)
+(** Getting constrs (primitive Coq terms) from existing Coq
+   libraries. 
+   
+    - [find_reference] is located in {v interp/coqlib.ml v} and return a global reference to the name "dir.s" (it must be used lazily). 
+    
+    - [constr_of_global] is located in {v library/libnames.ml v} and turn a
+    global reference into a constr.
+*)
 let find_constant contrib dir s =
   Libnames.constr_of_global (Coqlib.find_reference contrib dir s)
 
 let init_constant dir s = find_constant contrib_name dir s
 
-(* decomp_term :  constr -> (constr, types) kind_of_term *)
-let decomp_term (c : Term.constr) = Term.kind_of_term (Term.strip_outer_cast c)
-   
+(** [decomp_term] returns a user view of a constr, as defined in {v
+    kernel/term.ml v}. *)
+let decomp_term (c : Term.constr)  = 
+  Term.kind_of_term (Term.strip_outer_cast c)
+    
 let lapp c v  = Term.mkApp (Lazy.force c, v)
 
 module Env = struct
-type t = ((Term.constr, int) Hashtbl.t * int ref)
-    
-let add (env : t) (t : Term.constr ) =
-  try Hashtbl.find (fst env) t 
-  with
-    | Not_found -> 
-      let i = !(snd env) in 
-      Hashtbl.add (fst env) t i ; incr (snd env); i
+  type t = ((Term.constr, int) Hashtbl.t * int ref)
+      
+  let add (env : t) (t : Term.constr ) =
+    try Hashtbl.find (fst env) t 
+    with
+      | Not_found -> 
+	let i = !(snd env) in 
+	Hashtbl.add (fst env) t i ; incr (snd env); i
 
-let empty () = (Hashtbl.create 16, ref 0)	
+  let empty () = (Hashtbl.create 16, ref 0)	
 
-let to_list (env,_) = 
-  Hashtbl.fold (fun constr key acc -> ( constr) :: acc) env []
-    
+  let to_list (env,_) = 
+    Hashtbl.fold (fun constr key acc -> ( constr) :: acc) env []
+      
 end
-   
+  
 module Nat = struct
   let path = ["Coq" ; "Init"; "Datatypes"]
   let typ = lazy (init_constant path "nat")
   let _S =      lazy (init_constant  path "S")
   let _O =      lazy (init_constant  path "O")
-    (* A coq nat from an int *)
+  (* A coq nat from an int *)
   let of_int n =
     let rec aux n =
       begin  match n with
