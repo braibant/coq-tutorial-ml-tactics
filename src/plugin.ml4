@@ -77,8 +77,7 @@ module Reif = struct
   let eval = lazy(Lib_coq.init_constant path "eval")
 
   (** [to_constr t] build the Coq term that corresponds to [t]. *)
-  let rec to_constr (t : Arith.t) : Term.constr =
-    match t with
+  let rec to_constr (t : Arith.t) : Term.constr =  match t with
       | Arith.Plus (a, b) -> Term.mkApp (Lazy.force plus, [|(to_constr a); (to_constr b)|])
       | Arith.Const n -> Term.mkApp (Lazy.force const, [|Lib_coq.Nat.of_int n|])
       | Arith.Succ a -> Term.mkApp (Lazy.force succ, [|(to_constr a)|])
@@ -153,8 +152,8 @@ module Reif = struct
 	  (** If the goal was not looking like a relation applied to two
 	      arguments, we fail using the tacticals [tclFAIL]. 
 	      
-	      The documentation of fail is here:
-	      [http://coq.inria.fr/refman/Reference-Manual012.html#@tactic183]
+	      The documentation of fail is
+	      {{:http://coq.inria.fr/refman/Reference-Manual012.html#@tactic183}here}
 
 	      In a nutshell [tclFAIl] has type [int -> Pp.std_ppcmds ->
 	      tactic]. The number is the failure level (0 means that
