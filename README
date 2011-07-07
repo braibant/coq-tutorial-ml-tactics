@@ -1,1 +1,15 @@
 An example of Coq plugin that defines a reification tactic. 
+
+The files should be self-documented, even though we may manage to build a pdf that summarizes every interesting point. At the moment, the project needs coq trunk, in order to build the Makefile (coq_makefile ws evely patched recently). 
+
+FILES DESCRIPTION
+=================
+
+arguments.txt : the pre-makefile that is fed to coq_makefile (coq_makefile -f arguments.txt -o Makefile)
+src/lib_coq.ml{i} : an interface with Coq, where we define some handlers for Coq's API and constructs. 
+src/plugin.ml4 : the actual plugin that defines a reification tactic for a very simple subset of terms on nat
+src/Theory.v : reification primer
+test-suite/example.v : an example of usage of the tactic we defined in src/plugin.ml4. 
+
+
+
