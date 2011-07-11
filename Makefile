@@ -48,8 +48,6 @@ COQSRCLIBS?=-I $(COQLIB)kernel -I $(COQLIB)lib \
   -I $(COQLIB)plugins/firstorder \
   -I $(COQLIB)plugins/fourier \
   -I $(COQLIB)plugins/funind \
-  -I $(COQLIB)plugins/groebner \
-  -I $(COQLIB)plugins/interface \
   -I $(COQLIB)plugins/micromega \
   -I $(COQLIB)plugins/nsatz \
   -I $(COQLIB)plugins/omega \
@@ -112,17 +110,20 @@ MLFILES:=src/lib_coq.ml
 CMOFILES:=$(ML4FILES:.ml4=.cmo) $(MLFILES:.ml=.cmo)
 CMOFILES2:=$(patsubst ./src/%,%,$(filter ./src/%,$(CMOFILES)))
 CMOFILES0:=$(filter-out ./test-suite/% ./src/%,$(CMOFILES))
+CMXFILES:=$(CMOFILES:.cmo=.cmx)
+OFILES:=$(CMXFILES:.cmx=.o)
+MLLIBFILES:=src/theplug.mllib
+CMAFILES:=$(MLLIBFILES:.mllib=.cma)
+CMXAFILES:=$(CMAFILES:.cma=.cmxa)
+MLIFILES:=src/lib_coq.mli
 CMIFILES:=$(sort $(CMOFILES:.cmo=.cmi) $(MLIFILES:.mli=.cmi))
 CMIFILES2:=$(patsubst ./src/%,%,$(filter ./src/%,$(CMIFILES)))
 CMIFILES0:=$(filter-out ./test-suite/% ./src/%,$(CMIFILES))
-CMXFILES:=$(CMOFILES:.cmo=.cmx)
-CMXSFILES:=$(CMXFILES:.cmx=.cmxs)
+CMXSFILES:=$(CMXFILES:.cmx=.cmxs) $(CMXAFILES:.cmxa=.cmxs)
 CMXSFILES2:=$(patsubst ./src/%,%,$(filter ./src/%,$(CMXSFILES)))
 CMXSFILES0:=$(filter-out ./test-suite/% ./src/%,$(CMXSFILES))
-OFILES:=$(CMXFILES:.cmx=.o)
-MLIFILES:=src/lib_coq.mli
 
-all: $(VOFILES) $(CMOFILES) $(if ifeq '$(HASNATDYNLINK)' 'true',$(CMXSFILES)) 
+all: $(VOFILES) $(CMOFILES) $(CMAFILES) $(if ifeq '$(HASNATDYNLINK)' 'true',$(CMXSFILES)) 
 
 mlihtml: $(MLIFILES:.mli=.cmi)
 	 mkdir $@ || rm -rf $@/*
@@ -176,9 +177,6 @@ all-gal.pdf: $(VFILES)
 %.cmx: %.ml4
 	$(CAMLOPTC) $(ZDEBUG) $(ZFLAGS) $(PP) -impl $<
 
-%.cmxs: %.ml4
-	$(CAMLOPTLINK) $(ZDEBUG) $(ZFLAGS) -shared -o $@ $(PP) -impl $<
-
 %.ml4.d: %.ml4
 	$(OCAMLDEP) -slash $(OCAMLLIBS) $(PP) -impl "$<" > "$@" || ( RV=$$?; rm -f "$@"; exit $${RV} )
 
@@ -188,11 +186,23 @@ all-gal.pdf: $(VFILES)
 %.cmx: %.ml
 	$(CAMLOPTC) $(ZDEBUG) $(ZFLAGS) $<
 
-%.cmxs: %.ml
-	$(CAMLOPTLINK) $(ZDEBUG) $(ZFLAGS) -shared -o $@ $<
-
 %.ml.d: %.ml
 	$(OCAMLDEP) -slash $(OCAMLLIBS) "$<" > "$@" || ( RV=$$?; rm -f "$@"; exit $${RV} )
+
+%.cmxs: %.cmx
+	$(CAMLOPTLINK) $(ZDEBUG) $(ZFLAGS) -shared -o $@ $<
+
+%.cma: | %.mllib
+	$(CAMLLINK) $(ZDEBUG) $(ZFLAGS) -a -o $@ $^
+
+%.cmxa: | %.mllib
+	$(CAMLOPTLINK) $(ZDEBUG) $(ZFLAGS) -a -o $@ $^
+
+%.cmxs: %.cmxa
+	$(CAMLOPTLINK) $(ZDEBUG) $(ZFLAGS) -linkall -shared -o $@ $<
+
+%.mllib.d: %.mllib
+	$(COQDEP) -slash $(COQLIBS) -c "$<" > "$@" || ( RV=$$?; rm -f "$@"; exit $${RV} )
 
 %.vo %.glob: %.v
 	$(COQC) $(COQDEBUG) $(COQFLAGS) $*
@@ -263,20 +273,29 @@ install:$(if ifeq '$(HASNATDYNLINK)' 'true',install-natdynlink)
 	 install -d `dirname $(DSTROOT)$(COQLIB)user-contrib/$(INSTALLDEFAULTROOT)/$$i`; \
 	 install $$i $(DSTROOT)$(COQLIB)user-contrib/$(INSTALLDEFAULTROOT)/$$i; \
 	done
+	cd ./src; for i in $(CMAFILES2); do \
+	 install -d `dirname $(DSTROOT)$(COQLIB)user-contrib/ML_tutorial/$$i`; \
+	 install $$i $(DSTROOT)$(COQLIB)user-contrib/ML_tutorial/$$i; \
+	done
+	for i in $(CMAFILES0); do \
+	 install -d `dirname $(DSTROOT)$(COQLIB)user-contrib/$(INSTALLDEFAULTROOT)/$$i`; \
+	 install $$i $(DSTROOT)$(COQLIB)user-contrib/$(INSTALLDEFAULTROOT)/$$i; \
+	done
 
 install-doc:
-	install -d $(DSTROOT)$(DOCDIR)user-contrib/$(INSTALLDEFAULTROOT)/html
+	install -d $(DSTROOT)$(DOCDIR)user-contrib/ML_tutorial/html
 	for i in html/*; do \
-	 install $$i $(DSTROOT)$(DOCDIR)user-contrib/$(INSTALLDEFAULTROOT)/$$i;\
+	 install $$i $(DSTROOT)$(DOCDIR)user-contrib/ML_tutorial/$$i;\
 	done
-	install -d $(DSTROOT)$(DOCDIR)user-contrib/$(INSTALLDEFAULTROOT)/mlihtml
+	install -d $(DSTROOT)$(DOCDIR)user-contrib/ML_tutorial/mlihtml
 	for i in mlihtml/*; do \
-	 install $$i $(DSTROOT)$(DOCDIR)user-contrib/$(INSTALLDEFAULTROOT)/$$i;\
+	 install $$i $(DSTROOT)$(DOCDIR)user-contrib/ML_tutorial/$$i;\
 	done
 
 clean:
 	rm -f *~ Makefile-localvars.gen
-	rm -f $(CMOFILES) $(CMIFILES) $(CMXFILES) $(CMXSFILES) $(OFILES) $(MLFILES:.ml=.ml.d) $(MLIFILES:.mli=.mli.d) $(ML4FILES:.ml4=.ml4.d)
+	rm -f $(CMOFILES) $(CMIFILES) $(CMXFILES) $(CMAFILES) $(CMXAFILES) $(CMXSFILES) $(OFILES)
+	rm -f $(MLFILES:.ml=.ml.d) $(MLIFILES:.mli=.mli.d) $(ML4FILES:.ml4=.ml4.d) $(MLLIBFILES:.mllib=.mllib.d)
 	rm -f $(VOFILES) $(VIFILES) $(GFILES) $(VFILES:.v=.v.d)
 	rm -f all.ps all-gal.ps all.pdf all-gal.pdf all.glob $(VFILES:.v=.glob) $(VFILES:.v=.tex) $(VFILES:.v=.g.tex) all-mli.tex
 	- rm -rf html mlihtml
@@ -308,6 +327,9 @@ Makefile: arguments.txt
 
 -include $(ML4FILES:.ml4=.ml4.d)
 .SECONDARY: $(ML4FILES:.ml4=.ml4.d)
+
+-include $(MLLIBFILES:.mllib=.mllib.d)
+.SECONDARY: $(MLLIBFILES:.mllib=.mllib.d)
 
 # WARNING
 #

@@ -1,3 +1,4 @@
+
 (** * Introduction
 
    The goal of this plugin is to reify concrete terms of type [nat]
@@ -69,5 +70,4 @@ End example.
    In the current trunk (07/05/2011 rev 14260), one has to declare all
    ML modules that need to be linked dynamically. *)
 
-Declare ML Module "lib_coq".
-Declare ML Module "plugin".
+Declare ML Module "theplug".
