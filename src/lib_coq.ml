@@ -22,19 +22,26 @@ let decomp_term (c : Term.constr)  =
 let lapp c v  = Term.mkApp (Lazy.force c, v)
 
 module Env = struct
-  type t = ((Term.constr, int) Hashtbl.t * int ref)
+  module ConstrHashed = struct
+    type t = Term.constr
+    let equal = Term.eq_constr
+    let hash = Term.hash_constr
+  end
+  module ConstrHashtbl = Hashtbl.Make (ConstrHashed)
+
+  type t = (int ConstrHashtbl.t * int ref)
       
   let add (env : t) (t : Term.constr ) =
-    try Hashtbl.find (fst env) t 
+    try ConstrHashtbl.find (fst env) t 
     with
       | Not_found -> 
 	let i = !(snd env) in 
-	Hashtbl.add (fst env) t i ; incr (snd env); i
+	ConstrHashtbl.add (fst env) t i ; incr (snd env); i
 
-  let empty () = (Hashtbl.create 16, ref 0)	
+  let empty () = (ConstrHashtbl.create 16, ref 0)	
 
   let to_list (env,_) = 
-    Hashtbl.fold (fun constr key acc -> ( constr) :: acc) env []
+    ConstrHashtbl.fold (fun constr key acc -> ( constr) :: acc) env []
       
 end
   
