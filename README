@@ -1,6 +1,15 @@
 An example of Coq plugin that defines a reification tactic. 
 
-The files should be self-documented, even though we may manage to build a pdf that summarizes every interesting point. At the moment, the project needs coq trunk, in order to build the Makefile (coq_makefile ws evely patched recently). 
+The files should be self-documented, even though we may manage to build a pdf that summarizes every interesting point. The project needs coq8.5(pl2).
+
+INSTRUCTIONS
+============
+
+1. Build the makefile with:
+
+  coq_makefile -f arguments.txt -o Makefile
+
+2. run "make"
 
 FILES DESCRIPTION
 =================

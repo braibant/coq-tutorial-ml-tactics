@@ -11,5 +11,10 @@
 *.mli.d
 *.ml4.d
 *.ml.d
+*.a
+*.cmxa
+*.mllib.d
 *.o
+.*.aux
 Makefile-localvars.gen
+Makefile

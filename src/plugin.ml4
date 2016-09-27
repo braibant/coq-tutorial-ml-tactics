@@ -1,3 +1,5 @@
+DECLARE PLUGIN "theplug"
+
 (** We reify the structure of coq expressions as an ocaml
     data-type. We reify only the structure of the expression
     w.r.t. the [plus], [S], and [O] symbols of Coq. All other
@@ -98,18 +100,12 @@ module Reif = struct
   (* alternatively, 
      Term.mkApp (Lazy.force eval, [|env_to_constr env; to_constr t|]) *)
       
-  (** [tac] is the final tactic. Without too much details, a tactic is
-      a function that takes the current goal, and produce some (or
-      none) new sub-goals, and a partial proof-tree, that must be
-      filled by other tactics.
-      
-  *)
-  let tac : Proof_type.tactic =
-    fun goal -> 
-      (** We use [Tacmach.pf_concl_goal] to get the conclusion of the
-	  goal, which is a constr. (see [proofs/tacmach.mli] for other
-	  functions that manipulate the current goal.)  *)
-      let concl = Tacmach.pf_concl goal in
+  (** [tac] is the final tactic. *)
+  let tac : unit Proofview.tactic =
+      Proofview.Goal.enter (fun gl ->
+      (** We get the conclusion of the as a goal, which is a constr.
+          (see [proofs/proofview.mli].)  *)
+      let concl = Proofview.Goal.raw_concl gl in
       
       (** In our particular setting, the conclusion of the goal must
 	  be a relation applied to at least two arguments (the
@@ -140,14 +136,14 @@ module Reif = struct
 	  (** We use a {i tactical} to chain together a list of
 	      tactics (as would be done using a semi-column in Coq).
 	      (see [tactics/tacticals.mli] for other tacticals.)  *)
-       	  Tacticals.tclTHENLIST 
+       	  Tacticals.New.tclTHENLIST
 	    [
 	      (** Our list of tactics consists in the following single
        		  tactic, that changes the conclusion of the goal to
        		  [concl'] if [concl] and [concl'] are convertible. 
 		  (see [tactics/tactis.mli] for other tactics.)  *)
-	      Tactics.change_in_concl None concl';
-	    ] goal
+	      Tactics.change_concl concl' ;
+	    ]
 	| _ -> 
 	  (** If the goal was not looking like a relation applied to two
 	      arguments, we fail using the tacticals [tclFAIL]. 
@@ -166,11 +162,9 @@ module Reif = struct
 	      
 	      (see lib/pp.mli for more functions)
 	  *)
-	  Tacticals.tclFAIL 1
-	    (Pp.str "The goal does not look like an equation")
-	    goal
-end	 
-  
+	  Tacticals.New.tclFAIL 1
+	    (Pp.str "The goal does not look like an equation"))
+end
   
 (** The final magic part is to register our custom tactic in
     Coq. [_reflect_] is the name of this tactic extension (I do not know
@@ -182,4 +176,4 @@ end
 TACTIC EXTEND _reflect_
 | ["reflect_arith"] -> [Reif.tac]
 END
-    
+

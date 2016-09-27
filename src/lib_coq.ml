@@ -10,7 +10,7 @@ let contrib_name = "ml_tutorial"
     global reference into a constr.
 *)
 let find_constant contrib dir s =
-  Libnames.constr_of_global (Coqlib.find_reference contrib dir s)
+  Universes.constr_of_global (Coqlib.find_reference contrib dir s)
 
 let init_constant dir s = find_constant contrib_name dir s
 
