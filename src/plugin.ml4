@@ -83,7 +83,7 @@ module Reif = struct
       | Arith.Plus (a, b) -> Term.mkApp (Lazy.force plus, [|(to_constr a); (to_constr b)|])
       | Arith.Const n -> Term.mkApp (Lazy.force const, [|Lib_coq.Nat.of_int n|])
       | Arith.Succ a -> Term.mkApp (Lazy.force succ, [|(to_constr a)|])
-      | Arith.Var n -> Term.mkApp (Lazy.force var, [|Lib_coq.Nat.of_int n|])
+      | Arith.Var n ->  Term.mkApp (Lazy.force var, [|Lib_coq.Nat.of_int n|])
 	
   (** [env_to_constr env] build the Coq list that correspond to the
       environment map. We build a uniform Coq list of nat of type
@@ -95,8 +95,8 @@ module Reif = struct
       
   (** [build_eval env t] builds the Coq term that corresponds to [eval
       env t]. *)
-  let build_eval (env : Lib_coq.Env.t) (t : Arith.t) : Term.constr =
-    Lib_coq.lapp eval [|env_to_constr env; to_constr t|]
+  let build_eval (env : Term.constr) (t : Arith.t) : Term.constr =
+    Lib_coq.lapp eval [|env; to_constr t|]
   (* alternatively, 
      Term.mkApp (Lazy.force eval, [|env_to_constr env; to_constr t|]) *)
       
@@ -109,29 +109,28 @@ module Reif = struct
       
       (** In our particular setting, the conclusion of the goal must
 	  be a relation applied to at least two arguments (the
-	  left-hand side and the right-hand side) fo the
+	  left-hand side and the right-hand side) of the
 	  "equation".  *)
       match Lib_coq.decomp_term concl with
 	| Term.App(c, args) when Array.length args >= 2 ->
           let n = Array.length args in
        	  let left = args.(n-2) in
        	  let right = args.(n-1) in 
-	  (** The actual relation *)
-       	  let r = (Term.mkApp (c, Array.sub args 0 (n - 2))) in
 	  (** We initialize the environment, to reify the left
 	      hand-side and the right-hand side of the equation*)
        	  let arith_env = Lib_coq.Env.empty () in
        	  let left' = Arith.quote arith_env left in
        	  let right' = Arith.quote arith_env right in
-	  
+	  let coq_env = env_to_constr arith_env in
 	  (** We want to move from 
 	      {C left == right}
 	      to
 	      {C (eval env left') == (eval env right')}
 	      
 	  *)
-       	  let concl' = Term.mkApp (r, [|build_eval arith_env left'; 
-					build_eval arith_env right'|])
+          args.(n-2) <- build_eval coq_env left';
+          args.(n-1) <- build_eval coq_env right';
+       	  let concl' = Term.mkApp (c, args)
 	  in
 	  (** We use a {i tactical} to chain together a list of
 	      tactics (as would be done using a semi-column in Coq).
