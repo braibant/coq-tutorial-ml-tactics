@@ -128,9 +128,10 @@ module Reif = struct
 	      {C (eval env left') == (eval env right')}
 	      
 	  *)
-          args.(n-2) <- build_eval coq_env left';
-          args.(n-1) <- build_eval coq_env right';
-       	  let concl' = Term.mkApp (c, args)
+          let args' = Array.copy args in
+          args'.(n-2) <- build_eval coq_env left';
+          args'.(n-1) <- build_eval coq_env right';
+          let concl' = Term.mkApp (c, args')
 	  in
 	  (** We use a {i tactical} to chain together a list of
 	      tactics (as would be done using a semi-column in Coq).
